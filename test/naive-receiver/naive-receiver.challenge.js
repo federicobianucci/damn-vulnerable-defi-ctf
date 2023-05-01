@@ -56,7 +56,7 @@ describe("[Challenge] Naive receiver", function () {
   it("Execution", async function () {
     /** CODE YOUR SOLUTION HERE */
     const ExploiterFactory = await ethers.getContractFactory(
-      "Exploiter",
+      "contracts/naive-receiver/Exploiter.sol:Exploiter",
       deployer
     );
     let exploiter = await ExploiterFactory.deploy(
