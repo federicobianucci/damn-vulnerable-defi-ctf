@@ -35,7 +35,7 @@ describe("[Challenge] Side entrance", function () {
       "contracts/side-entrance/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(pool.address);
+    const exploiter = await ExploiterFactory.deploy(pool.address);
     await exploiter.connect(player).attack();
     await exploiter.connect(player).withdraw();
   });

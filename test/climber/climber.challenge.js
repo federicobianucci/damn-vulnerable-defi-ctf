@@ -68,7 +68,7 @@ describe("[Challenge] Climber", function () {
       "contracts/climber/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(
+    const exploiter = await ExploiterFactory.deploy(
       timelock.address,
       vault.address,
       token.address

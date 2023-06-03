@@ -51,7 +51,7 @@ describe("[Challenge] Backdoor", function () {
       "contracts/backdoor/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(walletRegistry.address);
+    const exploiter = await ExploiterFactory.deploy(walletRegistry.address);
 
     await exploiter.connect(player).attack(users);
   });

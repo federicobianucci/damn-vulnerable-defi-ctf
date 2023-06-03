@@ -119,7 +119,7 @@ describe("[Challenge] Puppet", function () {
       "contracts/puppet/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(lendingPool.address);
+    const exploiter = await ExploiterFactory.deploy(lendingPool.address);
 
     const result = await signERC2612Permit(
       ethers.provider,

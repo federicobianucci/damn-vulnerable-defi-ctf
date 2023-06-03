@@ -45,7 +45,10 @@ describe("[Challenge] Selfie", function () {
       "contracts/selfie/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(pool.address, token.address);
+    const exploiter = await ExploiterFactory.deploy(
+      pool.address,
+      token.address
+    );
     await exploiter.connect(player).attack();
     await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]); // advance 2 days
     await governance.connect(player).executeAction(exploiter.actionId());

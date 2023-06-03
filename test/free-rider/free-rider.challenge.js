@@ -130,7 +130,7 @@ describe("[Challenge] Free Rider", function () {
       "contracts/free-rider/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(
+    const exploiter = await ExploiterFactory.deploy(
       marketplace.address,
       devsContract.address,
       uniswapPair.address

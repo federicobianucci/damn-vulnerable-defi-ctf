@@ -59,7 +59,7 @@ describe("[Challenge] Naive receiver", function () {
       "contracts/naive-receiver/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(
+    const exploiter = await ExploiterFactory.deploy(
       pool.address,
       receiver.address
     );

@@ -100,7 +100,7 @@ describe("[Challenge] The rewarder", function () {
       "contracts/the-rewarder/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(
+    const exploiter = await ExploiterFactory.deploy(
       flashLoanPool.address,
       rewarderPool.address
     );

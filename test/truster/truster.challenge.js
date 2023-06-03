@@ -31,7 +31,7 @@ describe("[Challenge] Truster", function () {
       "contracts/truster/Exploiter.sol:Exploiter",
       deployer
     );
-    let exploiter = await ExploiterFactory.deploy(pool.address);
+    const exploiter = await ExploiterFactory.deploy(pool.address);
     await exploiter.connect(player).attack();
   });
 
